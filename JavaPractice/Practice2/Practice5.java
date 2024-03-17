@@ -2,7 +2,37 @@ package JavaPractice.Practice2;
 
 public class Practice5 {
     public static int solution(int[] ratings) {
-        return 0;
+       if(ratings.length ==0 || ratings == null){
+           return 0 ;
+       }
+
+       int result = 1;
+       int upCnt = 1;
+       int downCnt = 0;
+       int peak = 0;
+        for (int i = 1; i < ratings.length; i++) {
+            if(ratings[i] > ratings[i-1]){ // 오름차순으로 커질때
+                upCnt++;
+                peak = upCnt;
+                downCnt = 0;
+                result += upCnt;
+            }else if(ratings[i] == ratings[i-1]){
+                upCnt = 1;
+                downCnt = 0;
+                peak = 0;
+                result +=upCnt;
+            }else { // 오름차순으로 작아질때
+                upCnt = 1;
+                downCnt ++;
+                result += downCnt;
+
+                if(peak <= downCnt){
+                    result += 1;
+                }
+            }
+        }
+
+        return result;
     }
 
     public static void main(String[] args) {
