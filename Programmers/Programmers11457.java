@@ -8,7 +8,7 @@ public class Programmers11457 {
         boolean mytrun = true;
         while(num > 1){ // 1Kg보다 클때까지
            if(mytrun){ // 내턴이라면
-               if(num == 4 || num == 3 || num == 2){    
+               if(num == 4 || num == 3 || num == 2){
                    answer = true;
                    break;
                }
