@@ -20,79 +20,83 @@ package Programmers.Week14;
     ex) N = 34, edges = {{1,4},{6,12},{15,24]} 이면
     3번이면 도착할수있다. 모+모, 윷+모, 모+도 로 가능하다
     1-> 6 -> 11 -> 15 -> 28 -> 33 -> 34 도착
+
+    DP 방식으로 접근, 따져야할 모든 경우의 수
+    * 1. 시작점에서 출발하여 도개걸
+    * 2. 숏컷을 타고 도개걸
+    * 3. 시작점에서 출발하여 윷모 + 도개걸윷모
+    * 4. 숏컷을 타고 윷모 + 도개걸윷모
+    * 5. 시작점에서 출발할아여 윷모 + 숏컷을 타고 도개걸윷모
+    * 6. 숏컷을 타고 윷모 + 숏컷을 타고 도개걸윷모
  */
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Programmers13803 {
-    static class State {
-        int position;
-        int count;
-
-        State(int position,int count){
-            this.position = position;
-            this.count = count;
-        }
-    }
     public int solution(int N, int[][] edges) {
-        // 지름길 경로 추가
-        Map<Integer, Integer> shortcuts = new HashMap<>();
-        for(int[] edge: edges) {
-            shortcuts.put(edge[0],edge[1]);
-        }
+        int[] dp = new int[N+1];
+        Arrays.fill(dp,N);
+        dp[0] = 0;
 
-        Queue<State> que = new LinkedList<>();
-        que.offer(new State(1,0));
+        // 0 : 1번 던졌을때  4 : 윳으로 2번 던짐   5 : 모로 2번 던짐
+        List<Integer> firstMove = Arrays.asList(0,4,5);
+        // 1번 던졌을때는 도 개 걸 중에만 가능
+        List<Integer> secondMove1 = Arrays.asList(1,2,3);
+        // 2번 던졌을때는 도 개 걸 윷 모 다 가능
+        List<Integer> secondMove2 = Arrays.asList(1,2,3,4,5);
 
-        // 현재 위치 추가
-        Map<Integer, Integer> ThrowsPosition = new HashMap<>();
-        ThrowsPosition.put(1, 0);
+        for (int i = 0; i < N; i++) {
+            int finalI = i;
+            // 현재 위치의 지름길 추가. 지름길 사용시 -1 됨으로 -1
+            List<Integer> shortcuts = new ArrayList<>(Arrays.stream(edges)
+                    .filter(x -> x[0] == finalI)
+                    .mapToInt(x -> x[1] - 1)
+                    .boxed()
+                    .collect(Collectors.toList()));
 
-        while(!que.isEmpty()){
-            State curr = que.poll();
+            shortcuts.add(i);
 
-            if(curr.position >= N){
-                return curr.count;
-            }
+            for (int start : shortcuts) {
+                for (int move1 : firstMove) {
+                    int j = start + move1;
+                    List<Integer> shortcuts2 = new ArrayList<>();
+                    if (move1 > 0) { // 1번 던지는 경우, 숏컷을 2번 탈 수 없다.
+                        // 윷모 이후에 2번째 던질 때 타고 갈 수 있는 숏컷을 모두 찾는다.
+                        shortcuts2.addAll(Arrays.stream(edges)
+                                .filter(x -> x[0] == j)
+                                .mapToInt(x -> x[1] - 1) // 숏컷으로 이동하는 데에 1회 이동하므로 -1
+                                .boxed()
+                                .collect(Collectors.toList()));
+                    }
+                    // 숏컷을 쓰지 않는 경우도 추가
+                    shortcuts2.add(j);
 
-            // Simulate all possible moves
-            int[][] moves = {{1, 0}, {2, 0}, {3, 0}, {4, 1}, {5, 1}};
-            for (int[] move : moves) {
-                //현재위치와 카운트 증가
-                int newPosition;
-                int newThrowsCount = curr.count + 1;
-
-                // 지름길에 서있다면, 이동ㅌ`
-                if(shortcuts.containsKey(curr.position)){
-                    newPosition = shortcuts.get(curr.position) + move[0] -1;
-                }else{
-                    newPosition = curr.position + move[0];
-                }
-
-                //모나 윷이면 한번더
-                if (move[1] == 1) {
-                    // 지름길에 서있다면, 이동
-                    if (shortcuts.containsKey(curr.position)) {
-                        newPosition = shortcuts.get(curr.position) + move[0] - 1;
-                    } else {
-                        newPosition = curr.position + move[1];
+                    for (int start2: shortcuts2) {
+                        // 1번 던지는 경우 도개걸만 가능 (만약 윷모가 나온다면, 1번 던지는 것이 모순)
+                        // 2번 던지는 경우 도개걸윷모 모두 가능
+                        List<Integer> secondMoves = move1 == 0 ? secondMove1 : secondMove2;
+                        for (int move2: secondMoves) {
+                            int k = start2 + move2;
+                            if (k <= N) {
+                                dp[k] = Math.min(dp[k], dp[i] + 1);
+                            }
+                        }
                     }
                 }
-
-                if (!ThrowsPosition.containsKey(newPosition)) {
-                    ThrowsPosition.put(newPosition, move[0]);
-                    que.add(new State(newPosition, newThrowsCount));
-                }
-
-                if (newPosition > N) {
-                    continue; // Skip if the position exceeds the last node
-                }
-
             }
+
+
         }
-        return -1;
+        return dp[N];
+    }
+
+    public static void main(String[] args) {
+        int N = 34;
+        int[][] edges = {{1, 4}, {6, 12}, {15, 24}};
+        System.out.println(new Programmers13803().solution(N, edges));
     }
 }
