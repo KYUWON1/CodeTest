@@ -1,4 +1,7 @@
 package BaekJun;
+
+import java.util.Scanner;
+
 /*
     문제
     도현이는 바구니를 총 N개 가지고 있고, 각각의 바구니에는 1번부터 N번까지 번호가 매겨져 있다. 바구니에는 공이 1개씩 들어있고, 처음에는 바구니에 적혀있는 번호와 같은 번호가 적힌 공이 들어있다.
@@ -28,6 +31,26 @@ package BaekJun;
  */
 public class baek10813 {
     public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+        int[] baskets = new int[n];
+        // 바구니 공 초기화
+        for (int i = 0; i < baskets.length; i++) {
+            baskets[i] = i;
+        }
+        // 공 바꾸기
+        for (int i = 0; i < m; i++) {
+            int temp;
+            int tar1 = sc.nextInt()-1;
+            int tar2 = sc.nextInt()-1;
+            temp = baskets[tar1];
+            baskets[tar1] = baskets[tar2];
+            baskets[tar2] = temp;
+        }
 
+        for (int i = 0; i < baskets.length; i++) {
+            System.out.print(baskets[i]+1+" ");
+        }
     }
 }
